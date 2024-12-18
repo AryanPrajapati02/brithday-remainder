@@ -1,299 +1,202 @@
-// let getStartBtn = document.querySelector('.getStartBtn');
-// let page1 = document.querySelector('.page1');
-let currentDate= document.querySelector('.currentDate');
-let cards = document.querySelector('.cards');
-let searchBar = document.querySelector('.searchBar');
-let searchBtn = document.querySelector('.searchBtn');
-let searchdata = document.querySelector('.searchdata');
-let searchResult = document.querySelector('.searchResult');
-const url = " " //paste your api url here
-let products = document.querySelector('.products');
+const filterBtn = document.querySelectorAll('.filter-btn')
+// const url = 
+const cardList = document.querySelector('.card-list')
+const searchInput = document.querySelector('#searchInput')
+const Text = document.querySelector('.Text')
+const todayBirthday = document.querySelector('.today-birthday')
+const data = async()=>{
+    const response = await fetch(url)
+    const data = await response.json()
+    
+    await displayData(data)
+    await filterBtns(data)
+    await searchBox(data)
+    return data
+}
+data()
 
+let clutter = ''
+let getAllDataBtn = ''
+const filterBtns = (data)=>{
+    let filter;
+    filterBtn.forEach((btn) =>{
+        btn.addEventListener('click' , ()=>{
+            filterBtn.forEach(b => b.classList.remove('active' , 'bg-zinc-300','shadow-lg'))
+            btn.classList.add('active' , 'bg-zinc-300' , 'shadow-lg')
 
+             filter = btn.dataset.filter
 
-// Get the date and display it in the page 
-var today = new Date();
-var dd = String(today.getDate()).padStart(2, '0');
+             if(filter === "all" ){
+              
+                  Text.innerHTML = "all Upcoming Birthday's"
+                clutter = ''
+                 displayData(data)
+             }
+             if(filter === "month"){
+                const currentMonth = new Date().getMonth() + 1;
+                const monthData = data?.filter(obj => new Date(obj.DOB2).getMonth() + 1 === currentMonth);
+                 Text.innerHTML = "This Month Birthday's"
+                clutter =''
+               displayData(monthData)
+             }
+             if(filter === "today"){
+                const today = new Date().getDate() ;
+                const currentMonth = new Date().getMonth() + 1;
+                const todayData = data?.filter(obj => new Date(obj.DOB2).getDate() === today && new Date(obj.DOB2).getMonth() + 1 === currentMonth);
+                
+                todayBirthday.innerHTML = 
+                 Text.innerHTML = "Today Birthday's"
+                clutter =''
+             displayData(todayData)
+             }
+             if (filter === "week") {
+                const currentDate = new Date();
+            
+                // Helper function to calculate the start of the week (Sunday)
+                function getStartOfWeek(date) {
+                    const dayOfWeek = date.getDay(); // 0 (Sunday) to 6 (Saturday)
+                    const startDate = new Date(date);
+                    startDate.setDate(date.getDate() - dayOfWeek); // Subtract the day of the week
+                    startDate.setHours(0, 0, 0, 0); // Set to start of day
+                    return startDate;
+                }
+            
+                // Helper function to calculate the end of the week (Saturday)
+                function getEndOfWeek(date) {
+                    const startDate = getStartOfWeek(date);
+                    const endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6); // Add 6 days to get Saturday
+                    endDate.setHours(23, 59, 59, 999); // Set to end of day
+                    return endDate;
+                }
+            
+                const startOfCurrentWeek = getStartOfWeek(currentDate);
+                const endOfCurrentWeek = getEndOfWeek(currentDate);
+               // Filter data based on the week range
+                const weekData = data?.filter(obj => {
+                    const objDate = new Date(obj.DOB2);
+                    objDate.setFullYear(currentDate.getFullYear()); // Make it year-agnostic for week comparison
+            
+                    return objDate >= startOfCurrentWeek && objDate <= endOfCurrentWeek;
+                });
+                 Text.innerHTML = 'this week'
+                clutter =''
+            
+               displayData(weekData)
+            }
+            
+  })})    }
+    
 
-var mm = today.toLocaleString('default', { month: 'long' });
-var yyyy = today.getFullYear();
-var day = today.toLocaleString('default', { weekday: 'long' });
-today = dd + "-"+ mm +"   ,"+day;
-
-currentDate.innerHTML = today;
-
-// getStartBtn.addEventListener("click" , () => {
-//     page1.style.display = "none";
-// });
-
-
-
-
-// Fetch the data from the  API 
-async function getData(){
-    let response = await fetch(url);
-    let data = await response.json();
+const displayData = async(data)=>{
+    const today = new Date().getDate() ;
+    const currentMonth = new Date().getMonth() + 1;
+    const todayData = data?.filter(obj => new Date(obj.DOB2).getDate() === today && new Date(obj.DOB2).getMonth() + 1 === currentMonth);
+    
+    todayBirthday.innerHTML ="Happy Birthday  "+ todayData?.map((elem)=> elem.Name)
+   
+    data?.sort((a, b) => daysUntilNextBirthday(a.DOB2) - daysUntilNextBirthday(b.DOB2));
    
    
-reamainder(data)
-hero(data)
+    data?.map((elem)=>{
 
-
-    
-  searchBar.addEventListener("input", function(){
-    const filterArray = data.filter(obj => obj.Name.toLowerCase().startsWith(searchBar.value))
-      
-     console.log(filterArray)
-     var clutter2;
-     filterArray.forEach((obj)=>{
-         clutter2+=`<div class="add flex  items-center px-8 py-3 " id="${obj.ID}">
-        <button class="add flex" id="${obj.ID}">
-        <i class="add ri-search-line font-semibold mr-5"></i>
-        <h3 class="add font-semibold">${obj.Name}</h3></button>
-     </div>`;
-    
-     })
-    searchdata.addEventListener("click", function(e){
-        console.log(e.target.ID)
+       clutter += `         <div class="card  w-full  ">
+                  
+                        <div class="bg-white/80 rounded-xl min-h-[32vh]  shadow-lg hover:-translate-y-1 transition-transform p-2 text-center">
+                            <div class=" bg-red-200 rounded-full flex items-center justify-center w-10 h-10 m-auto mt-3 mb-2">
+                                👤
+                            </div>
+                            <h3 class="font-semibold text-gray text-lg mb-2 text-center">${elem.Name}</h3>
+                            <p class="text-sage mb-2 text-center">${elem.DOB}</p>
+                            <p class="text-xl font-bold text-dark mb-1">Age   <span class="text-orange-500">${calculateAge(elem.DOB2)+1}</span></p>
+                            <p class="text-sage mb-4">in <span class="font-semibold text-xl">${daysUntilNextBirthday(elem.DOB2)}</span> DAY's</p>
+                         
+                </div>
+                  </div>`
     })
-
-    
-
-     if(searchBar.value === ""){
-        document.querySelector(".searchdata").style.display = "none";
-     }
-     else{
-        document.querySelector(".searchdata").style.display = "block";
-        document.querySelector(".searchdata").innerHTML = clutter2;
-     }
    
-    })
-    searchBar.addEventListener("blur" , ()=>{
-        document.querySelector(".searchdata").style.display = "none";
-    })
-} 
-getData();
-
-
-
-
- function convertor(){
-    searchBtn.addEventListener("click", async ()=>{
-    let searchVal = searchBar.value.toUpperCase();
-    let convertedFullName =searchVal.replace(" ", "%20");
-    searchBar.value = "";
-    let res = await fetch(`${url}/search?Name=${convertedFullName}`);
-    let data2 = await res.json();
+    cardList.innerHTML  = clutter
     
-    let searchcard = ` <div class="w-[95%] h-50 absolute top-[17%] rounded-xl p-4 ml-4  z-10  flex justify-center items-center flex-col bg-white">
-    <div class="absolute left-1 h-7 w-7"><i class="ri-expand-left-line"></i></div>
-   <div class="w-20 h-20 bg-slate-400 rounded-xl "><img src="./png-clipart-iphone-world-emoji-day-man-iphone-electronics-face-thumbnail-removebg-preview.png" alt=""></div>
-   <h2 class="text-xl">${data2[0].Name}</h2>
-    <h2>${data2[0].DOB}</h2>
-</div>`
-searchResult.innerHTML = searchcard
-  let exit = document.querySelector('.ri-expand-left-line');
-    exit.addEventListener("click", ()=>{
-        searchResult.innerHTML = "";
-    })
-    BirthdayAnalyser(data2)
-})}
-
- 
-convertor()
-
-
-
-function BirthdayAnalyser(data){
-          // Student's date of birth
-const studentDOB = new Date(data[0].DOB2);
-console.log("Student's Date of Birth:", studentDOB);
-
-// Upcoming birthday in 2024
-const upcomingBirthday = new Date(`2024-${studentDOB.getMonth() + 1}-${studentDOB.getDate()}`);
-console.log("Upcoming Birthday in 2024:", upcomingBirthday);
-
-// Current date
-const currentDate = new Date();
-console.log("Current Date:", currentDate);
-
-// Calculate the difference in milliseconds (until next birthday in 2024)
-let differenceInMs;
-if (currentDate < upcomingBirthday) {
-  differenceInMs = upcomingBirthday - currentDate;
-} else {
-  upcomingBirthday.setFullYear(upcomingBirthday.getFullYear() + 1);
-  differenceInMs = upcomingBirthday - currentDate;
 }
 
-// Convert milliseconds to days
-const millisecondsInADay = 1000 * 60 * 60 * 24;
-const daysLeftForBirthday = Math.floor(differenceInMs / millisecondsInADay);
+
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+    if (window.pageYOffset > 300) {
+        scrollTopBtn.style.display = 'flex';
+    } else {
+        scrollTopBtn.style.display = 'none';
+    }
+});
+
+scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 
-const age = currentDate.getFullYear() - studentDOB.getFullYear();
 
-console.log(`Number of days left for the upcoming birthday in 2024: ${daysLeftForBirthday} days`);
 
+
+const calculateAge = (dob) => {
+    const [ month, day ,year] = dob.split('/');
+    const birthDate = new Date(`${year}-${month}-${day}`);
+    const date = new Date();
+    let age = date.getFullYear() - birthDate.getFullYear();
+    const monthDifference = date.getMonth() - birthDate.getMonth();
+
+    if (monthDifference < 0 || (monthDifference === 0 && date.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    return age;
+}
+const daysUntilNextBirthday = (dob) => {
+    const [month, day ] = dob?.split('/');
+    const date = new Date();
+    const currentYear = date.getFullYear();
+    let nextBirthday = new Date(`${currentYear}-${month}-${day}`);
+
+    if (date > nextBirthday) {
+        nextBirthday.setFullYear(currentYear + 1);
+    }
+
+    const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+    const daysLeft = Math.round((nextBirthday - date) / oneDay);
+
+    return daysLeft;
 }
 
-function hero(data4){
-    data4.forEach((item) => { 
-        const studentDOB = new Date(item.DOB2);
-        const upcomingBirthday = new Date(`2024-${studentDOB.getMonth() + 1}-${studentDOB.getDate()}`);
-        const currentDate = new Date();
- 
-        let differenceInMs;
-        if (currentDate < upcomingBirthday) {
-            differenceInMs = upcomingBirthday - currentDate;
-        } else {
-            upcomingBirthday.setFullYear(upcomingBirthday.getFullYear() + 1);
-            differenceInMs = upcomingBirthday - currentDate;
-        }
- 
-        const millisecondsInADay = 1000 * 60 * 60 * 24;
-        const daysLeftForBirthday = Math.floor(differenceInMs / millisecondsInADay);
- 
-        const age = currentDate.getFullYear() - studentDOB.getFullYear();
 
 
-        if(daysLeftForBirthday === 364){
-
-          
-           hero2(item.Name)
-           
-         
+const searchBox = (data)=>{
+    const overlay  = document.querySelector(".overlay")
+    searchInput.addEventListener('focus', (e)=>{
+        overlay.style.display = "block";
+        e.preventDefault();
+        e.target.focus({preventScroll: true});
+    })
+    searchInput.addEventListener("blur" , ()=>{
+       overlay.style.display = "none";
+    })
+    
+    
+    searchInput.addEventListener('input', ()=>{
+        var clutter2 ;
+        if(searchInput.value === ""){
+            
+            document.querySelector(".searchdata").style.display = "none";
+            clutter2 ='';
+            
         }
         else{
-            clutter4 = `  <div class="product w-fit rounded-xl p-2 bg-white">
-            <div class="image w-[20rem] h-[15rem] bg-zinc-200 rounded-xl">
-              <video src="./Blue Illustrative Happy Birthday Greeting Card (1).mp4" autoplay loop muted class="w-full h-full object-cover "></video>
-            </div>
             
-        </div>
-          `
-        
-                products.innerHTML = clutter4;
-        }
-       
-
-
-    })
-    function hero2(firstname){
-      
-        if(firstname === undefined){
-           console.log("no")
-         }else{
-
-    clutter4 = `  <div class="product w-fit rounded-xl p-2 bg-white relative">
-    <div class="image w-[20rem] h-[15rem] bg-zinc-200 rounded-xl ">
-      <img src="https://i.pinimg.com/originals/bc/fd/6b/bcfd6befdd0b46722e77bbbbbfe48c17.png" alt="" class="w-full h-full object-cover rounded-xl"/>
-      <h1 class="absolute top-1/2 right-12 text-red-600 text-2xl font-semibold">${firstname}</h1>
-      
-    </div>
+            const filterArray = data?.filter(obj => obj.Name.toLowerCase().startsWith(searchInput.value.toLowerCase()) || obj.DOB.toLowerCase().startsWith(searchInput.value.toLowerCase()))
+            filterArray?.map((obj)=>{   clutter2 +=`<div class="add flex items-center px-8 py-3 z-20 " id="${obj.ID}" >
+                         <h3 class="add font-semibold">${obj.Name} | ${obj.DOB}</h3></button>
+                          </div>`
+                        })
+                        document.querySelector(".searchdata").style.display = "block";
+                        document.querySelector(".searchdata").innerHTML = clutter2  }
     
-</div>
-  `
-
-        products.innerHTML = clutter4;
-    }
-}}
-
-
-
-
-
-function reamainder(data3){
-    var clutter = [];
-
-
-
-
-    data3.forEach((item) => { 
-        const studentDOB = new Date(item.DOB2);
-        const upcomingBirthday = new Date(`2024-${studentDOB.getMonth() + 1}-${studentDOB.getDate()}`);
-        const currentDate = new Date();
- 
-        let differenceInMs;
-        if (currentDate < upcomingBirthday) {
-            differenceInMs = upcomingBirthday - currentDate;
-        } else {
-            upcomingBirthday.setFullYear(upcomingBirthday.getFullYear() + 1);
-            differenceInMs = upcomingBirthday - currentDate;
-        }
- 
-        const millisecondsInADay = 1000 * 60 * 60 * 24;
-        const daysLeftForBirthday = Math.floor(differenceInMs / millisecondsInADay);
- 
-        const age = currentDate.getFullYear() - studentDOB.getFullYear();
-
- 
-        clutter.push({
-            name: item.Name,
-            dob: item.DOB,
-            daysLeft: daysLeftForBirthday,
-            age: age,
-            Phone:item.Phone
-        });
-    });
- 
-    clutter.sort((a, b) => a.daysLeft - b.daysLeft);
-    
-    var cards = "";
-    clutter.forEach((item) => {
-        cards += `<div>
-        <div class="w-[95%] h-35 bg-[#F7E7FF] rounded-2xl mt-2 m-2 p-2 flex justify-center items-center flex-col  ">
-            <div class="rounded-2xl"><img src="./png-clipart-iphone-world-emoji-day-man-iphone-electronics-face-thumbnail-removebg-preview.png" class="h-35 w-20 bg-orange-400 rounded-2xl" alt=""></div>
-            <div class="text-center">
-                <div>
-                    <h2 class="text-xl">${item.name}</h2>
-                    <h3 class="text-xl">${item.dob}</h3>
-                </div>
-                <div class=" ">
-                    <h1 class="text-2xl font-bold">${item.age}</h1>
-                   <h1 class="text-2xl text-blue-600"> in ${item.daysLeft} DAY's</h1> 
-
-                </div>
-                <div>
-               
-                <a href="https://api.whatsapp.com/send?phone= ${item.Phone}"><i class="ri-whatsapp-line bg-slate-100  text-4xl rounded-xl "></i></a>
-
-                  
-                </div>
-            
-            </div>
-            
-
-          </div> 
-        
-        </div>`;
-    });
- 
-    document.querySelector('.cards').innerHTML = cards;
-
-
-}
-
-
-
-
-
-
-
-// async function searchFunctionality(data){
-// try{
-    
-//   searchBar.addEventListener("focus" , ()=>{
-//     document.querySelector('#overlay').style.display = "block";
-//   })
-//   searchBar.addEventListener("blur" , ()=>{
-//     document.querySelector('#overlay').style.display = "none";
-//   })
-  
-
-// }catch(e){
-//     console.log(e)
-
-// }
-// }
-// searchFunctionality()
+    }) }
+searchBox()
