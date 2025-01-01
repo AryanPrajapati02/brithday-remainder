@@ -1,4 +1,4 @@
-# Birthday Reminder App [https://collegebirthday.netlify.app/]
+# [Birthday Reminder App](https://collegebirthday.netlify.app/)
 
 ## Overview
 
