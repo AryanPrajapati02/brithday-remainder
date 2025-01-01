@@ -113,11 +113,7 @@ Contributions are welcome! To contribute:
 
 ---
 
-## License
 
-This project is licensed under the [MIT License](LICENSE).
 
----
-
-For any questions or suggestions, feel free to raise an issue or contact the repository owner.
+For any questions or suggestions, feel free to raise an issue or contact me.
 
